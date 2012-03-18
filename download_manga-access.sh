@@ -8,6 +8,7 @@ Dir=${2}
 ThisChapter=$3
 BaseDir=$(cd $Dir && pwd)
 BaseUrl="http://www.manga-access.com"
+MATURE="?mature_confirm=1" # for manga like doubt
 Uri="/manga/${1:0:1}/$1/"
 
 CurlPage="/usr/bin/curl --silent "
@@ -16,7 +17,7 @@ Wget="/usr/bin/wget"
 
 function CatchChapter () {
 
-Url="${BaseUrl}${Uri}"
+Url="${BaseUrl}${Uri}${MATURE}"
 echo "Retriving Chapters"
 for Chapter in $(${CurlPage[@]} $Url | grep '<em>chapter</em>' | awk -F'"' '{print $4}' | sort -t'/' -k6n) ;do
     if [ $Parallel -ge $ConcurentDownloadChapter ] ;then
