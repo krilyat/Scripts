@@ -112,8 +112,14 @@ cd $BaseDir
 for Page in $(find . -type f -name '[0-9].???') ;do 
     mv $Page $(echo $Page | sed 's/\([0-9]\.[a-z][a-z][a-z]\)/00\1/') 
 done
+for Page in $(find . -type f -name '[0-9]-[0-9].???') ;do 
+    mv $Page $(echo $Page | sed 's/\([0-9]\)-\([0-9]\.[a-z][a-z][a-z]\)/00\1-00\2/') 
+done
 for Page in $(find . -type f -name '[0-9][0-9].???') ;do 
     mv $Page $(echo $Page | sed 's/\([0-9][0-9]\.[a-z][a-z][a-z]\)/0\1/') 
+done
+for Page in $(find . -type f -name '[0-9][0-9]-[0-9][0-9].???') ;do 
+    mv $Page $(echo $Page | sed 's/\([0-9][0-9]\)-\([0-9][0-9]\.[a-z][a-z][a-z]\)/0\1-0\2/') 
 done
 
 }
