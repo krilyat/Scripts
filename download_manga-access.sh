@@ -118,6 +118,9 @@ done
 for Page in $(find . -type f -name '[0-9][0-9].???') ;do 
     mv $Page $(echo $Page | sed 's/\([0-9][0-9]\.[a-z][a-z][a-z]\)/0\1/') 
 done
+for Page in $(find . -type f -name '[0-9][0-9][a-zA-Z].???') ;do 
+    mv $Page $(echo $Page | sed 's/\([0-9][0-9][a-zA-Z]\.[a-z][a-z][a-z]\)/0\1/') 
+done
 for Page in $(find . -type f -name '[0-9][0-9][_-][0-9][0-9].???') ;do 
     mv $Page $(echo $Page | sed 's/\([0-9][0-9]\)[-_]\([0-9][0-9]\.[a-z][a-z][a-z]\)/0\1-0\2/') 
 done
