@@ -27,7 +27,8 @@ if ! [ -S /tmp/jackd_dtc ] ;then
 	$CPU "performance"
 	#dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p256 -t500 -dalsa -dhw:0 -r88200 -p128 -n2
 	#dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:0 -r48000 -p128 -n1
-	dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:0 -r48000 -p96 -n1
+	#dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:0 -r48000 -p96 -n1
+	dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:1 -r48000 -p96 -n1
 	sleep 1
 	(Popup -t "Jackd" -m "Started")
 else
@@ -52,8 +53,8 @@ VST="$1"
 if ! [ -S /tmp/vsthost_${VST}_dtc ] ;then
 	export WINEPREFIX=/home/bob/.wine 
 	export VST_PATH='/home/bob/.wine/drive_c/VSTPlugIns/' 
-	WINE_RT=15 
-	WINE_SVRT=10
+	export WINE_RT=15 
+	export WINE_SRV_RT=10
 	dtach -n /tmp/vsthost_${VST}_dtc -e ^d /usr/bin/vsthost ${VST}.dll
 	(Popup -t "${VST}" -m "Starting...")
 fi
