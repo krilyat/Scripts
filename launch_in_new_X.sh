@@ -14,13 +14,15 @@ while getopts wp:a: OPT ;do
 done
 
 InitDisplay(){
+export DISPLAY=$DISPLAY
 X $DISPLAY &
+sleep 1
+xcalib ~/.config/nf310.icc > /dev/null 2>&1
 readonly XPID=$!
 }
 
 LaunchWineApp(){
-export $DISPLAY
-export $WINEPREFIX
+export WINEPREFIX=$WINEPREFIX
 APPDIR=$(dirname $APP)
 APPL=$(echo $APP | awk -F'/' '{print $NF}')
 
@@ -29,8 +31,6 @@ wine $APPL
 }
 
 LaunchApp(){
-export $DISPLAY
-
 $APP
 }
 
