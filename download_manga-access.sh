@@ -13,6 +13,7 @@ Uri="/manga/${1:0:1}/$1/"
 
 CurlPage="/usr/bin/curl --silent "
 CurlDl="/usr/bin/curl -O "
+CurlDltest="/usr/bin/curl"
 Wget="/usr/bin/wget"
 
 function CatchChapter () {
@@ -89,14 +90,18 @@ fi
 }
 
 function DownloadImage () {
-
 Page=$1
 RealPage=$(echo $Page | awk -F'/' '{print $NF}')
 Url="${BaseUrl}${Page}"
 UrlImage=$(${CurlPage[@]} $Url | grep '<img style="cursor: pointer;" src="' | cut -d'"' -f4)
+Ext=$(echo $UrlImage | awk -F'.' '{print tolower($NF)}')
 
+case ${#RealPage} in
+1)RealPage="00${RealPage}";;
+2)RealPage="0${RealPage}";;
+esac
 
-${CurlDl[@]} $UrlImage &>/dev/null
+${CurlDltest[@]} $UrlImage -o "${RealPage}.${Ext}" &>/dev/null
 if [ $? -eq 0 ] ;then
 echo -ne "Downloading Page $RealPage into $PWD ..." > /dev/null
     echo " ...SUCCESS" > /dev/null
@@ -129,8 +134,8 @@ done
 case $# in
 2) CatchChapter
     RenameChapter;;
-3) CatchThisChapter
-    RenameChapter;;
+3) CatchThisChapter;;
+#    RenameChapter;;
 *) exit 1
 esac
 
