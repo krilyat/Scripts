@@ -64,13 +64,19 @@ EarlyDeleteFiles
 SyncFiles
 LateDeleteFiles
 
-sleep 10
-set -x
-lsof | grep /tmp/
+cd /tmp
+
+while [ $(lsof | grep -c $mount_point) -ne 0 ] ;do
+    lsof | grep -c $mount_point
+    echo "on attend 10 sec"
+    sleep 10
+done
 
 umount $mount_point
 RET=$?
-lsof | grep $mount_point
+
 if [ $RET -eq "0" ] ;then
     rmdir $mount_point
-fi 
+else
+    echo ECHEC
+fi

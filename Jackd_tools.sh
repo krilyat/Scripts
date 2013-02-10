@@ -40,14 +40,15 @@ fi
 }
 
 StartVST() {
+set -x
 [ -z $1 ] && Usage;
 _vst=$1
 _socket="${tmpdir}/${_vst}_sock"
 _pid="${tmpdir}/${_vst}_pid"
 
 if ! [ -S $_socket ] ;then
-	$dtach -n $_socket -e ^d $vsthost ${_vst}.dll
-    echo $$ > $_pid
+	$dtach -n $_socket $vsthost ${_vst}.dll
+    ps aux | grep "$dtach -n $_socket $vsthost ${_vst}.dll" | grep -v grep | awk '{print $2}' > $_pid
     sleep 1
 fi
 }
@@ -67,23 +68,14 @@ if [ $_socket == "/tmp/jackd_sock" ] ;then
 fi
 }
 
-LaunchTheRest() {
-
-$jp1
-$gtklick
-
-}
-
-
 [ -z $1 ] && Usage;
 while getopts sSv:V:k OPT;do
 case $OPT in
     s)	StartJackd;;
     S)  StopIt jackd;;
     v)	StartJackd
-        StartVST $1
-        LaunchTheRest;;
-    V)  StopIt $1;;
+        StartVST $OPTARG;;
+    V)  StopIt $OPTARG;;
     k)  StopIt jackd
         ;;
     *)	Usage;;
