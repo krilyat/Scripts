@@ -1,24 +1,17 @@
 #!/bin/bash
 
-
 export WINEPREFIX="/home/ben/WineMAO/"
 export VST_PATH="${WINEPREFIX}/drive_c/vst/"
 export WINE_RT=90
 export WINE_SRV_RT=90
 
 dtach="/usr/bin/dtach"
-tmpdir="/tmp"
-
 jackd="/usr/bin/jackd"
-jackdpid="${tmpdir}/jackd_pid"
-jackdsocket="${tmpdir}/jackd_dtc"
-
-vstpid="${tmpdir}/vst_pid"
-vstsocket="${tmpdir}/vst_dtc"
 vsthost="/usr/bin/vsthost"
-
 jp1="/usr/bin/jp1"
 gtklick="/usr/bin/gtklick"
+
+tmpdir="/tmp"
 
 Usage() {
 cat << EOF
@@ -26,67 +19,73 @@ cat << EOF
 Usage : $0 -[skg] <-V VST>
  Options :
   -s : Launch Jackd
-  -k : stop Jackd
-  -V 'VST'	: Launch Jackd  and a vst plugin (name without '.dll)
+  -S : Stop Jackd
+  -k : stop everything
+  -v 'VST'	: Launch Jackd  and a vst plugin (name without '.dll)
+  -V 'VST'	: Stop 'VST'
 EOF
 exit 1
 }
 
 StartJackd() {
-jackdOptions="\
--P89 \
--dalsa \
--dhw:0 \
--r48000 \
--p75 \
--n2 \
--S \
--H \
--M"
+jackdOptions="-P89 -dalsa -dhw:0 -r48000 -p75 -n2 -H -M"
+_socket="${tmpdir}/jackd_sock"
+_pid="${tmpdir}/jackd_pid"
 
-if ! [ -S $jackdsocket ] ;then
-	$dtach -n $jackdsocket -e ^d $jackd ${jackdOptions[@]}
-    echo $$ > $jackdpid
+if ! [ -S $_socket ] ;then
+	$dtach -n $_socket $jackd ${jackdOptions[@]}
+    ps aux | grep "$dtach -n $_socket $jackd ${jackdOptions[@]}" | grep -v grep | awk '{print $2}' > $_pid
+    sleep 2
 fi
 }
 
 StartVST() {
-if ! [ -S $vstsocket ] ;then
-	$dtach -n $vstsocket -e ^d $vsthost ${VST}.dll
-    echo $$ > $vstpid
+[ -z $1 ] && Usage;
+_vst=$1
+_socket="${tmpdir}/${_vst}_sock"
+_pid="${tmpdir}/${_vst}_pid"
+
+if ! [ -S $_socket ] ;then
+	$dtach -n $_socket -e ^d $vsthost ${_vst}.dll
+    echo $$ > $_pid
+    sleep 1
 fi
 }
 
-StopJackd() {
-if [ -S $jackdsocket ] ;then
-	kill $(cat $jackdpid)
+StopIt() {
+[ -z $1 ] && Usage;
+_base="${tmpdir}/${1}"
+_socket="${_base}_sock"
+_pid="${_base}_pid"
+
+if [ -S $_socket ] ;then
+	kill $(cat $_pid)
+    rm -f $_pid
+fi
+if [ $_socket == "/tmp/jackd_sock" ] ;then
+    killall $jackd
 fi
 }
 
-StopVSTs() {
-if [ -S $vstsocket ] ;then
-	kill $(cat $vstpid)
-fi
-}
-
-LaunchPatchbay() {
+LaunchTheRest() {
 
 $jp1
 $gtklick
 
 }
 
+
 [ -z $1 ] && Usage;
-while getopts skgV: OPT;do
+while getopts sSv:V:k OPT;do
 case $OPT in
     s)	StartJackd;;
-    k)	StopVSTs
-        StopJackd;;
-    V)	VST="Superior_Drummer"
-        StartJackd
-        sleep 2
-        StartVST
-        LaunchProgram;;
+    S)  StopIt jackd;;
+    v)	StartJackd
+        StartVST $1
+        LaunchTheRest;;
+    V)  StopIt $1;;
+    k)  StopIt jackd
+        ;;
     *)	Usage;;
 esac
 done
