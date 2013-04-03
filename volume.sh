@@ -1,6 +1,6 @@
 #!/bin/bash
 #set -x
-. $(dirname $0)/functions.sh
+#. $(dirname $0)/functions.sh
 UPDATEFILE="/home/bob/.config/wmfs/volume"
 
 function PrintVolume() {
@@ -34,4 +34,4 @@ case $1 in
 ;;
 esac
 
-PrintVolume
+#PrintVolume

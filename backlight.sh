@@ -39,8 +39,7 @@ case "$1" in
                echo "$0: current brightness is 0x$var1"
                ;;
        toggle)
-				export DISPLAY=:0.0
-				sleep .2 && xset s activate
+				sleep .2 && xset -display :0.0 s activate
                ;;
        *)
                echo "usage: $0 {up|down|set <val>|get|toggle}"

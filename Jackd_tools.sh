@@ -1,83 +1,83 @@
 #!/bin/bash
 
-. $(dirname $0)/functions.sh
-CPU="$(dirname $0)/CPU-set.sh"
+export WINEPREFIX="/home/ben/WineMAO/"
+export VST_PATH="${WINEPREFIX}/drive_c/vst/"
+export WINE_RT=90
+export WINE_SRV_RT=90
+
+dtach="/usr/bin/dtach"
+jackd="/usr/bin/jackd"
+vsthost="/usr/bin/vsthost"
+jp1="/usr/bin/jp1"
+gtklick="/usr/bin/gtklick"
+
+tmpdir="/tmp"
 
 Usage() {
 cat << EOF
 
 Usage : $0 -[skg] <-V VST>
  Options :
-  -s : Launch Jackd and Qjackctl
-  -k : stop Jackd and Qjackctl
-  -g : Launch Qjackctl alone
-  -V 'VST'	: Launch Jackd Qjackctl AND a vst plugin (name without '.dll)
+  -s : Launch Jackd
+  -S : Stop Jackd
+  -k : stop everything
+  -v 'VST'	: Launch Jackd  and a vst plugin (name without '.dll)
+  -V 'VST'	: Stop 'VST'
 EOF
 exit 1
 }
 
-Qjackctl() {
-if ! [ -S /tmp/qjackctl_dtc ] ;then
-	dtach -n /tmp/qjackctl_dtc -e ^d /usr/bin/qjackctl
-fi
-}
-
 StartJackd() {
-if ! [ -S /tmp/jackd_dtc ] ;then
-	$CPU "performance"
-	#dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p256 -t500 -dalsa -dhw:0 -r88200 -p128 -n2
-	#dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:0 -r48000 -p128 -n1
-	#dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:0 -r48000 -p96 -n1
-	dtach -n /tmp/jackd_dtc -e ^d /usr/bin/jackd -P89 -p128 -t200 -dalsa -dhw:1 -r48000 -p96 -n1
-	sleep 1
-	(Popup -t "Jackd" -m "Started")
-else
-	(Popup -t "Jackd" -m "Already Started")
-fi
-}
+jackdOptions="-P89 -dalsa -dhw:0 -r48000 -p75 -n2 -H -M"
+_socket="${tmpdir}/jackd_sock"
+_pid="${tmpdir}/jackd_pid"
 
-StopJackd() {
-if [ -S /tmp/jackd_dtc ] ;then
-	pkill jackd
-	(Popup -t "Jackd" -m "Stoped")
-	$CPU "ondemand"
-fi
-sleep 1
-if [ -S /tmp/qjackctl_dtc ] ;then
-	pkill qjackctl
+if ! [ -S $_socket ] ;then
+	$dtach -n $_socket $jackd ${jackdOptions[@]}
+    ps aux | grep "$dtach -n $_socket $jackd ${jackdOptions[@]}" | grep -v grep | awk '{print $2}' > $_pid
+    sleep 2
 fi
 }
 
 StartVST() {
-VST="$1"
-if ! [ -S /tmp/vsthost_${VST}_dtc ] ;then
-	export WINEPREFIX=/home/bob/.wine 
-	export VST_PATH='/home/bob/.wine/drive_c/VSTPlugIns/' 
-	export WINE_RT=15 
-	export WINE_SRV_RT=10
-	dtach -n /tmp/vsthost_${VST}_dtc -e ^d /usr/bin/vsthost ${VST}.dll
-	(Popup -t "${VST}" -m "Starting...")
+set -x
+[ -z $1 ] && Usage;
+_vst=$1
+_socket="${tmpdir}/${_vst}_sock"
+_pid="${tmpdir}/${_vst}_pid"
+
+if ! [ -S $_socket ] ;then
+	$dtach -n $_socket $vsthost ${_vst}.dll
+    ps aux | grep "$dtach -n $_socket $vsthost ${_vst}.dll" | grep -v grep | awk '{print $2}' > $_pid
+    sleep 1
 fi
 }
 
-StopVSTs() {
-if [ -S /tmp/vsthost_*_dtc ] ;then
-	pkill vsthost
-	(Popup -t "VSTplugin" -m "Stoped")
+StopIt() {
+[ -z $1 ] && Usage;
+_base="${tmpdir}/${1}"
+_socket="${_base}_sock"
+_pid="${_base}_pid"
+
+if [ -S $_socket ] ;then
+	kill $(cat $_pid)
+    rm -f $_pid
+fi
+if [ $_socket == "/tmp/jackd_sock" ] ;then
+    killall $jackd
 fi
 }
 
 [ -z $1 ] && Usage;
-while getopts skgV: OPT;do
+while getopts sSv:V:k OPT;do
 case $OPT in
-s)	StartJackd
-	Qjackctl;;
-k)	StopVSTs
-	StopJackd;;
-g)	Qjackctl;;
-V)	StartJackd
-	Qjackctl
-	StartVST ${OPTARG};;
-*)	Usage;;
+    s)	StartJackd;;
+    S)  StopIt jackd;;
+    v)	StartJackd
+        StartVST $OPTARG;;
+    V)  StopIt $OPTARG;;
+    k)  StopIt jackd
+        ;;
+    *)	Usage;;
 esac
 done
