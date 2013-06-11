@@ -1,6 +1,5 @@
 #!/bin/bash
 . $(dirname $0)/functions.sh
-#set -x
 
 MODULE="wl"
 INTERFACE="wlan0"
