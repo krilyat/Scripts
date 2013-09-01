@@ -4,7 +4,7 @@ export DISPLAY=:0.0
 
 COMMAND="/sbin/poweroff"
 SCHARGE=$1
-NCHARGE="15"
+NCHARGE="95"
 PRINT=(notify-send Battery: )
 
 if [ $(cat /sys/class/power_supply/ADP1/online) -eq 0 ] ; then

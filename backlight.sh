@@ -2,6 +2,7 @@
 # increase/decrease/set/get the backlight brightness (range 0-255)
 #
 #set -x 
+export DISPLAY=:0.0
 # PCI device on which to operate
 DEVICE=00:02.0
 
