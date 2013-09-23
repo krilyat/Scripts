@@ -31,6 +31,7 @@ class exifImage(Item):
 
     def parseExifForDst(self):
         try:
+            log.debug("image : %s" % self.source)
             image = Image.open(self.source)
             cdate, ctime = image._getexif()[36867].split(' ')
         except KeyError, err:
@@ -107,7 +108,16 @@ def main():
                 log.debug("KeyError : %s on %s" % (err, filename))
                 mtype = 'other'
             if mtype == 'image':
-                item = exifImage(dirname, filename, imgdst)
+                try:
+                    item = exifImage(dirname, filename, imgdst)
+                except TypeError, err:
+                    log.debug("TypeError : %s on %s" % (err, filename))
+                    if filename.startswith("."):
+                        log.debug("hidden file, nevermind...")
+                        continue
+                    else:
+                        log.warn("file not handle %s" % filename)
+                        exit(2)
                 item.Processing(imglist)
                 #add xmp if exists
                 if os.path.isfile('%s.xmp' % item.source):
