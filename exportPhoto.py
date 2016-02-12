@@ -126,7 +126,7 @@ def main():
                         otherlist.append(item)
                         continue
                 item.Processing(imglist)
-                #add xmp if exists
+                # add xmp if exists
                 if os.path.isfile('%s.xmp' % item.source):
                     prefix = os.path.basename(item.destination).split("-")[0]
                     xmp = Item(os.path.dirname(item.source),
